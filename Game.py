@@ -54,15 +54,9 @@ class Game():
             self.bag = np.delete(self.bag, 0)
             np.random.shuffle(self.bag)
 
-    def playBestMove(self):
-        # print("Current player: ", self.currentPlayer + 1)
-        # print(self.players[self.currentPlayer])
-        moves = self.find_best_moves(self.players[self.currentPlayer].rack)
-        # print(moves[0])
+    def playBestMove(self, moves):
         self.players[self.currentPlayer].score += moves[0][1]
         self.play(moves[0][2], moves[0][0], moves[0][3])
-        # print(self.players[self.currentPlayer])
-        # print(self.board)
 
     def find_best_moves(self, rack, num=5):
         rack = list(rack)
@@ -112,27 +106,8 @@ class Game():
         self.initGame()
 
     def endGame(self):
-        # print("FINAL SCORE: ")
-        # print("Player One: ", self.players[0].score)
-        # print("Player Two: ", self.players[1].score)
-        # print(self.board)
+        print("FINAL SCORE: ")
+        print("Player One: ", self.players[0].score)
+        print("Player Two: ", self.players[1].score)
+        print(self.board)
         self.numMoves = -1
-
-    def playGame(self):
-        while self.numMoves >= 0:
-            self.playBestMove()
-
-
-
-
-# g = Game()
-# g.play((7,7), "TAWNY", 0)
-# g.play((8,6), "CAT", 0)
-# g.play((5,5), "QATS", 1)
-# import time
-# start = time.time()
-# # your code here
-# print(g.find_best_moves("EEIMST?", num=10))
-# print(time.time() - start)
-
-

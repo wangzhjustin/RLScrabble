@@ -19,9 +19,6 @@ def saveExample(state, lock):
         json.dump(config, f)
     lock.release()
 
-
-
-
 def multiplierToNumber(ml):
     if ml == None:
         return 0
@@ -64,9 +61,6 @@ def mapBoardToState(game, leave):
     state['board'] = board
     return state
 
-
-
-
 def thread_func(move, game, ply, lock):
     lettersUsed = game.board.get_letters_used(move[2], move[0], move[3])
     lettersLeft = game.players[game.currentPlayer].rack[:]
@@ -93,13 +87,11 @@ def thread_func(move, game, ply, lock):
         diff = temp_game.players[temp_game.currentPlayer].score - temp_game.players[not temp_game.currentPlayer].score
         state['scoreDifferentialAfterXPly'] = diff
         saveExample(state, lock)
-    print(move[0])
-
 
 def simulate(game, ply=2):
     lock = threading.Lock()
-    print('hi')
-    moves = game.find_best_moves(game.players[game.currentPlayer].rack, 5)
+    print('Player ' + str(game.currentPlayer+1) + ': ')
+    moves = game.find_best_moves(game.players[game.currentPlayer].rack)
     threads = []
     for move in moves:
         threads.append(threading.Thread(target=thread_func, args=(move, game, ply, lock,)))
@@ -108,17 +100,26 @@ def simulate(game, ply=2):
     for th in threads:
         th.join()
 
-
 def main():
     a = Game()
+    opponentNoMove = False
     while a.numMoves >= 0:
-        simulate(a)
-        a.playBestMove()
-        if a.numMoves % 5 == 0:
-            print(a.board)
+        print('Player ' + str(a.currentPlayer+1) + ': ')
+        moves = a.find_best_moves(a.players[a.currentPlayer].rack)
+        if len(moves) == 0:
+            print('no possible move')
+            if opponentNoMove:
+                a.endGame()
+                a.numMoves = -1
+                continue
+            a.currentPlayer = not a.currentPlayer
+            opponentNoMove = True
+        else:
+            print(moves[0][0])
+            opponentNoMove = False
+            a.playBestMove(moves)
+            # print(a.board)
 
 
 if __name__ == "__main__":
     main()
-
-
