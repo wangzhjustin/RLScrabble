@@ -62,16 +62,9 @@ points = {
     'z': 0
 }
 
-
 BAG = list("AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ??")
 def bag():
     return np.array(BAG)
-
-
-def letters():
-    return LETTERS
-
-
 
 def b():
     BOARD = [[Tile(TRIPLE_WORD), Tile(), Tile(), Tile(DOUBLE_LETTER), Tile(), Tile(), Tile(), Tile(TRIPLE_WORD), Tile(), Tile(), Tile(), Tile(DOUBLE_LETTER), Tile(), Tile(), Tile(TRIPLE_WORD)],
