@@ -5,7 +5,74 @@ import time
 import threading
 import json
 
-counter = 0
+def find_best_move_lookahead(game, score=0, k=1, protagonist=1):
+    '''
+    returns:
+        move:      the optimal move according to k-ply lookahead
+        score:     the difference in score between players (protagonist_score - antagonist_score)
+    '''
+
+    if k == 0:
+        # make the this player fill entirely random rack 'numDraws' times, 
+        # make the best moves, and return average score
+        avg_score = 0
+        numDraws = 10
+        count = 0
+        for i in range(numDraws):
+        # make the next player fill entirely random rack
+            game.exchangeSeven(game.currentPlayer)
+            moves = game.find_best_moves(game.players[game.currentPlayer].rack, num=1)
+            if len(moves) == 0:
+                continue
+            else:
+                avg_score += moves[0][1]
+                count += 1
+
+        if count > 0:
+            avg_score = avg_score / count
+
+        if protagonist:
+            score += avg_score
+        else:
+            score -= avg_score
+
+        return [], score
+
+    # find the best move according to lookahead
+    branchingFactor = 3 # how many moves to analyze
+    moves = game.find_best_moves(game.players[game.currentPlayer].rack, num=branchingFactor)
+    bestMove = None
+    bestScore = -np.inf
+    for nextMove in moves:
+        inputScore = score
+        if protagonist:
+            inputScore += nextMove[1]
+        else:
+            inputScore -= nextMove[1]
+
+        # memorize the state here
+        tempBag = copy.deepcopy(game.bag)
+        tempBoard = copy.deepcopy(game.board)
+        tempPlayers = copy.deepcopy(game.players)
+        tempCurrentPlayer = copy.deepcopy(game.currentPlayer)
+        tempNumMoves = copy.deepcopy(game.numMoves)
+
+        game.playBestMove(list([nextMove, nextMove]))
+
+        _, tempScore = find_best_move_lookahead(game, inputScore, k-1, not protagonist)
+        
+        game.bag = tempBag 
+        game.board = tempBoard
+        game.players = tempPlayers
+        game.currentPlayer = tempCurrentPlayer
+        game.numMoves = tempNumMoves
+        
+        if tempScore > bestScore:
+            bestScore = tempScore
+            bestMove = nextMove
+
+    return bestMove, bestScore
+
 
 def saveExample(state, lock):
     lock.acquire()
@@ -101,24 +168,65 @@ def simulate(game, ply=2):
         th.join()
 
 def main():
+    bagNum = 50 # 0 to 100
+    kply = 1 # 1 or 2
+    greedyPlayer = 0 # 0 or 1
+    player1Wins = 0
+    player2Wins = 0
+    count = 0
     a = Game()
-    opponentNoMove = False
-    while a.numMoves >= 0:
-        print('Player ' + str(a.currentPlayer+1) + ': ')
-        moves = a.find_best_moves(a.players[a.currentPlayer].rack)
-        if len(moves) == 0:
-            print('no possible move')
-            if opponentNoMove:
-                a.endGame()
-                a.numMoves = -1
-                continue
-            a.currentPlayer = not a.currentPlayer
-            opponentNoMove = True
+    while count < 50: # number of sims to run
+        a.clear()
+        opponentNoMove = False
+        while a.numMoves >= 0:
+            print('Player ' + str(a.currentPlayer + 1) + ' rack:')
+            print(a.players[a.currentPlayer].rack)
+            print('Player ' + str(a.currentPlayer + 1) + ': ')
+            if a.currentPlayer == greedyPlayer or len(a.bag) > bagNum:
+                moves = a.find_best_moves(a.players[a.currentPlayer].rack, num=1)
+            else:
+                # memorize the current state
+                tempBag = copy.deepcopy(a.bag)
+                tempBoard = copy.deepcopy(a.board)
+                tempPlayers = copy.deepcopy(a.players)
+                tempCurrentPlayer = copy.deepcopy(a.currentPlayer)
+                tempNumMoves = copy.deepcopy(a.numMoves)
+
+                # make sure we don't know the opponent's real rack
+                a.exchangeSeven(not a.currentPlayer)
+
+                moves = find_best_move_lookahead(a, k=kply)
+
+                a.bag = tempBag 
+                a.board = tempBoard
+                a.players = tempPlayers
+                a.currentPlayer = tempCurrentPlayer
+                a.numMoves = tempNumMoves
+            if len(moves) == 0 or moves[0] == None:
+                print('no possible move')
+                if opponentNoMove:
+                    a.endGame()
+                    print('racks:')
+                    print(a.players[0].rack)
+                    print(a.players[1].rack)
+                    a.numMoves = -1
+                    continue
+                a.currentPlayer = not a.currentPlayer
+                opponentNoMove = True
+            else:
+                print(moves[0][0])
+                opponentNoMove = False
+                a.playBestMove(moves)
+                print('Bag size: ' + str(len(a.bag)))
+                # print(a.board)
+
+        if a.players[0].score > a.players[1].score:
+            player1Wins += 1
         else:
-            print(moves[0][0])
-            opponentNoMove = False
-            a.playBestMove(moves)
-            # print(a.board)
+            player2Wins += 1
+        print('Player 1 wins: ' + str(player1Wins))
+        print('Player 2 wins: ' + str(player2Wins))
+        count += 1
 
 
 if __name__ == "__main__":
