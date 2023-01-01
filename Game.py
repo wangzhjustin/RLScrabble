@@ -5,6 +5,7 @@ import os
 from Gaddag import *
 import time
 import numpy as np
+import copy
 
 HORIZ = 0
 VERT = 1
@@ -76,6 +77,7 @@ class Game():
         """play a move on the board"""
 
         lettersUsed = self.board.place_word(start_square, word, direction)
+        
         for _ in range(np.random.randint(1, 10)):
             np.random.shuffle(self.bag)
         tilesDrawn = self.players[self.currentPlayer].drawTiles(self.bag, lettersUsed)
@@ -111,3 +113,23 @@ class Game():
         print("Player Two: ", self.players[1].score)
         print(self.board)
         self.numMoves = -1
+
+    def humanMove(self, userInput):
+        moves = []
+        strArr = userInput.split()
+        row = int(strArr[0])
+        col = int(strArr[1])
+        dir = strArr[2]
+        word = strArr[3]
+
+        if dir == 'across':
+            dir = HORIZ
+        elif dir == 'down':
+            dir = VERT
+        
+        score = Board.scorePlay(self.board, (row, col), word, dir)
+
+        moves.append([word, score, (row, col), dir])
+        moves.append([None])
+
+        return moves

@@ -3,6 +3,7 @@ from Gaddag import Dictionary, DELIMITER, Arc
 from utils import *
 import Tile
 import string
+from colorama import Fore, Back, Style
 
 LETTERS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -323,6 +324,39 @@ class Board():
                     moves.extend(self.generate_moves(current, direction, rack, dictionary, tile_set, anchors_used))
                     anchors_used.append(current)
         return moves
+
+    def printHumanBoard(self):
+        print('   ', end='')
+        for i in range(len(self.board)):
+            if len(str(i)) <= 1:
+                print(str(i) + '  ', end='')
+            else:
+                print(str(i) + ' ', end='')
+        print('')
+        for i in range(len(self.board)):
+            if len(str(i)) <= 1:
+                print(str(i) + '  ', end='')
+            else:
+                print(str(i) + ' ', end='')
+            for j in range(len(self.board[i])):
+                tile = self.square((i, j)).letter
+                pout = '*  '
+                if tile:
+                    pout = tile + '  '
+
+                mult = self.square((i, j)).multiplier
+                if mult == 'TW':
+                    print(Fore.LIGHTMAGENTA_EX + pout, end='')
+                elif mult == 'DW':
+                    print(Fore.RED + pout, end='')
+                elif mult == 'TL':
+                    print(Fore.BLUE + pout, end='')
+                elif mult == 'DL':
+                    print(Fore.GREEN + pout, end='')
+                else:
+                    print(Fore.WHITE + pout, end='')
+            print(Fore.WHITE + '')
+        return
 
 
 

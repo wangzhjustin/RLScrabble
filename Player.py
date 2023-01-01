@@ -1,4 +1,5 @@
 import numpy as np
+import utils
 
 class Player():
     def __init__(self):
@@ -20,3 +21,6 @@ class Player():
                 self.rack.append(bag[i])
                 tilesDrawn += 1
         return tilesDrawn
+
+    def rackLetterScores(self):
+        return np.array2string(np.vectorize(utils.points.__getitem__)(self.rack), separator=', ')

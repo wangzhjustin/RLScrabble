@@ -38,8 +38,20 @@ def find_best_move_lookahead(game, score=0, k=1, protagonist=1):
 
         return [], score
 
+    if k == 99:
+        avg_score = 0
+        moves = game.find_best_moves(game.players[game.currentPlayer].rack, num=1)
+        if len(moves) >= 1:
+            avg_score += moves[0][1]
+        if protagonist:
+            score += avg_score
+        else:
+            score -= avg_score
+        return [], score
+
+
     # find the best move according to lookahead
-    branchingFactor = 3 # how many moves to analyze
+    branchingFactor = 5 # how many moves to analyze
     moves = game.find_best_moves(game.players[game.currentPlayer].rack, num=branchingFactor)
     bestMove = None
     bestScore = -np.inf
@@ -61,7 +73,7 @@ def find_best_move_lookahead(game, score=0, k=1, protagonist=1):
 
         _, tempScore = find_best_move_lookahead(game, inputScore, k-1, not protagonist)
         
-        game.bag = tempBag 
+        game.bag = tempBag
         game.board = tempBoard
         game.players = tempPlayers
         game.currentPlayer = tempCurrentPlayer
@@ -168,11 +180,13 @@ def simulate(game, ply=2):
         th.join()
 
 def main():
-    bagNum = 50 # 0 to 100
+    bagNum = 0 # 0 to 100
     kply = 1 # 1 or 2
     greedyPlayer = 0 # 0 or 1
     player1Wins = 0
     player2Wins = 0
+    player1Score = 0
+    player2Score = 0
     count = 0
     a = Game()
     while count < 50: # number of sims to run
@@ -182,7 +196,7 @@ def main():
             print('Player ' + str(a.currentPlayer + 1) + ' rack:')
             print(a.players[a.currentPlayer].rack)
             print('Player ' + str(a.currentPlayer + 1) + ': ')
-            if a.currentPlayer == greedyPlayer or len(a.bag) > bagNum:
+            if a.currentPlayer == greedyPlayer or len(a.bag) >= bagNum:
                 moves = a.find_best_moves(a.players[a.currentPlayer].rack, num=1)
             else:
                 # memorize the current state
@@ -226,8 +240,13 @@ def main():
             player2Wins += 1
         print('Player 1 wins: ' + str(player1Wins))
         print('Player 2 wins: ' + str(player2Wins))
+        player1Score += a.players[0].score
+        player2Score += a.players[1].score
         count += 1
+    print('Player 1 avg score: ' + str(player1Score / count))
+    print('Player 2 avg score: ' + str(player2Score / count))
 
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()
